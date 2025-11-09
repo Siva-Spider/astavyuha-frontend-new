@@ -1,0 +1,69 @@
+/* Container for the whole TradingApp page */
+.trading-app-container {
+    width: 100%;
+    max-width: 1200px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto; /* Center the page horizontally */
+}
+
+/* Header */
+.trading-header {
+    display: flex;
+    justify-content: flex-end; /* Push logout button to right */
+    width: 100%; /* Ensure full width */
+    padding: 1rem 2rem;
+    background-color: #fafafa;
+    border-bottom: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+/* Logout button */
+.logout-btn {
+    padding: 5px 15px;
+    background-color: #f44336; /* Red color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Main content */
+.trading-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    align-items: flex-start; /* Left alignment */
+    box-sizing: border-box;
+}
+
+/* Tabs */
+.tab-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-buttons button {
+    padding: 8px 15px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: white;
+    border-radius: 5px;
+}
+
+.tab-buttons button.active {
+    background-color: #1976d2;
+    color: white;
+    border-color: #1976d2;
+}
+
+/* Tab content area */
+.trading-content {
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+}
