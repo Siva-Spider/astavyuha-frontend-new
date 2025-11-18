@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import TradingApp from "./pages/TradingApp";
 import DashboardHome from "./pages/DashboardHome";
+import { LogWSProvider } from "./LogWSContext";
 
 export default function App() {
   // ✅ Initialize user state from localStorage for refresh persistence

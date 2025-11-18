@@ -3,7 +3,6 @@ import React, { useEffect, useRef } from 'react';
 const TradeResults = ({ tradeLogs, onClearLogs }) => {
   const logEndRef = useRef(null);
 
-  // Auto-scroll to bottom whenever new logs arrive
   useEffect(() => {
     if (logEndRef.current) {
       logEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -42,17 +41,11 @@ const TradeResults = ({ tradeLogs, onClearLogs }) => {
         }}
       >
         {tradeLogs.length > 0 ? (
-          tradeLogs.map((log, index) => {
-            let color = 'black';
-            if (log.includes('BUY SIGNAL')) color = 'green';
-            if (log.includes('SELL SIGNAL')) color = 'red';
-
-            return (
-              <div key={index} style={{ color, margin: '3px 0' }}>
-                {log}
-              </div>
-            );
-          })
+          tradeLogs.map((log, index) => (
+            <div key={index} style={{ margin: '3px 0' }}>
+              {log}
+            </div>
+          ))
         ) : (
           <p>No trade results to display yet. Connect a broker and start trading!</p>
         )}
