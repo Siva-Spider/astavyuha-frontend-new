@@ -104,7 +104,7 @@ const ConnectBroker = ({ brokerCount, selectedBrokers, onBrokerCountChange, onBr
                     );
                 })}
 
-                <button type="submit" style={{ marginTop: '20px' }}>Connect</button>
+                <button type="submit" style={{ marginTop: '20px', color:"#8d3af8ff" , backgroundColor: "#17fc7eff"}}>Connect</button>
             </form>
         </div>
     );

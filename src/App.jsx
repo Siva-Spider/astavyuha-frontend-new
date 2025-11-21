@@ -20,6 +20,7 @@ export default function App() {
   });
 
   return (
+    <LogWSProvider>
     <BrowserRouter>
       <Routes>
         {/* --- Public Routes --- */}
@@ -62,5 +63,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
+    </LogWSProvider>
   );
 }

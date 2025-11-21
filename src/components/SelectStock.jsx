@@ -24,7 +24,7 @@ const SelectStock = (props) => {
         "INFOSYS LIMITED": "INFY",
         "TATA CONSULTANCY SERV LT": "TCS",
         "STATE BANK OF INDIA": "SBIN",
-        "AXIS BANK LTD": "AXISBANK",
+        "AXIS BANK LIMITED": "AXISBANK",
         "KOTAK MAHINDRA BANK LTD": "KOTAKBANK",
         "ITC LTD": "ITC",
         "LARSEN & TOUBRO LTD.": "LT",
@@ -92,27 +92,34 @@ const SelectStock = (props) => {
         (broker) => broker.profileData && broker.profileData.status === "success"
     );
 
+    // 🔥 helper – checks if this stock is active (locked)
+    const isDisabled = (index) => tradingStatus[`stock_${index}`] === "active";
+
     return (
         <div style={{ padding: "20px" }}>
             <h2>Select Stocks / Commodities</h2>
             <form onSubmit={(e) => e.preventDefault()}>
+                
+                {/* top section */}
                 <div style={{ marginBottom: "15px", display: "flex", gap: "20px", alignItems: "center" }}>
                     <label>
                         Number of Stocks (1-10):
                         <input 
                             type="number" 
-                            min="1" 
-                            max="10" 
-                            value={stockCount} 
-                            onChange={onStockCountChange} 
-                            style={{ marginLeft: "10px" }} 
+                            min="1" max="10"
+                            value={stockCount}
+                            onChange={onStockCountChange}
+                            disabled={false}
+                            style={{ marginLeft: "10px" }}
                         />
                     </label>
+
                     <label>
                         Select Type:
-                        <select 
-                            value={selectionType} 
-                            onChange={(e) => setSelectionType(e.target.value)} 
+                        <select
+                            value={selectionType}
+                            onChange={(e) => setSelectionType(e.target.value)}
+                            disabled={false}
                             style={{ marginLeft: "10px" }}
                         >
                             <option value="EQUITY">EQUITY</option>
@@ -123,269 +130,247 @@ const SelectStock = (props) => {
 
                 {Array.from({ length: stockCount }).map((_, index) => {
                     const key = `stock_${index}`;
-                    const currentParams = tradingParameters[key] || { symbol_key: "", symbol_value: "" };
-                    const isTrading = tradingStatus[key] === "active";
-
+                    const currentParams = tradingParameters[key] || {};
                     return (
                         <div
                             key={key}
                             style={{
                                 marginTop: "15px",
                                 marginBottom: "10px",
-                                display: "flex",
-                                alignItems: "center",
-                                flexWrap: "wrap",
-                                border: "1px solid #ccc",
                                 padding: "15px",
+                                border: "1px solid #ccc",
                                 borderRadius: "5px",
+                                display: "flex",
+                                flexWrap: "wrap",
                                 gap: "10px"
                             }}
                         >
-                            {/* Stock / Commodity selection */}
-                            <div style={{ marginRight: "10px", minWidth: "200px" }}>
-                                {selectionType === "EQUITY" ? (
-                                    <label>
-                                        Stock {index + 1}:
-                                        <select
-                                            value={Object.keys(stock_map).find(k => stock_map[k] === currentParams.symbol_value) || "RELIANCE INDUSTRIES LTD"}
-                                            onChange={(e) => {
-                                                const newStockName = e.target.value;
-                                                const newSymbol = stock_map[newStockName];
-                                                onParameterChange({ target: { value: "EQUITY" } }, index, "type");
-                                                onStockSelection(index, newStockName, newSymbol, "EQUITY");
-                                            }}
-                                            style={{ marginLeft: "10px", width: "150px" }}
-                                        >
-                                            {Object.keys(stock_map).map(stockName => (
-                                                <option key={stockName} value={stockName}>{stockName}</option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                ) : (
-                                    <div style={{ display: "flex", gap: "10px" }}>
-                                        <label>
-                                            Commodity Group:
-                                            <select
-                                                value={currentParams.symbol_key || ""}
-                                                onChange={(e) => onParameterChange(e, index, "symbol_key")}
-                                                style={{ marginLeft: "10px", width: "150px" }}
-                                            >
-                                                <option value="">Select Group</option>
-                                                {Object.keys(commodity_map).map(key => (
-                                                    <option key={key} value={key}>{key}</option>
-                                                ))}
-                                            </select>
-                                        </label>
 
-                                        <label>
-                                            Symbol:
-                                            <select
-                                                value={currentParams.symbol_value || ""}
-                                                onChange={(e) => {
-                                                    onStockSelection(index, currentParams.symbol_key, e.target.value, "COMMODITY");
-                                                }}
-                                                style={{ marginLeft: "10px", width: "150px" }}
-                                                disabled={!currentParams.symbol_key}
-                                            >
-                                                <option value="">Select Symbol</option>
-                                                {currentParams.symbol_key && Array.isArray(commodity_map[currentParams.symbol_key]) &&
-                                                    commodity_map[currentParams.symbol_key].map(val => (
-                                                        <option key={val} value={val}>{val}</option>
-                                                ))}
-                                            </select>
-                                        </label>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Broker */}
-                            <div style={{ marginRight: "10px" }}>
+                            {/* ---------------------- EQUITY ---------------------- */}
+                            {selectionType === "EQUITY" && (
                                 <label>
-                                    Broker:
+                                    Stock {index + 1}:
                                     <select
-                                        value={currentParams.broker || ""}
-                                        onChange={(e) => onParameterChange(e, index, "broker")}
-                                        style={{ marginLeft: "10px", width: "110px" }}
+                                        disabled={isDisabled(index)}
+                                        value={
+                                            Object.keys(stock_map).find(
+                                                k => stock_map[k] === currentParams.symbol_value
+                                            ) || "RELIANCE INDUSTRIES LTD"
+                                        }
+                                        onChange={(e) => {
+                                            const newStockName = e.target.value;
+                                            const newSymbol = stock_map[newStockName];
+                                            onParameterChange({ target: { value: "EQUITY" } }, index, "type");
+                                            onStockSelection(index, newStockName, newSymbol, "EQUITY");
+                                        }}
+                                        style={{ marginLeft: "10px", width: "150px" }}
                                     >
-                                        <option value="">Select</option>
-                                        {connectedBrokers.map((broker, idx) => (
-                                            <option key={idx} value={broker.name}>{broker_map[broker.name]}</option>
+                                        {Object.keys(stock_map).map(name => (
+                                            <option key={name} value={name}>{name}</option>
                                         ))}
                                     </select>
                                 </label>
-                            </div>
+                            )}
+
+                            {/* ---------------------- COMMODITY ---------------------- */}
+                            {selectionType === "COMMODITY" && (
+                                <div style={{ display: "flex", gap: "15px" }}>
+
+                                    <label>
+                                        Commodity Group:
+                                        <select
+                                            disabled={isDisabled(index)}
+                                            value={currentParams.symbol_key || ""}
+                                            onChange={(e) => onParameterChange(e, index, "symbol_key")}
+                                            style={{ marginLeft: "10px", width: "150px" }}
+                                        >
+                                            <option value="">Select Group</option>
+                                            {Object.keys(commodity_map).map(key => (
+                                                <option key={key} value={key}>{key}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+
+                                    <label>
+                                        Symbol:
+                                        <select
+                                            disabled={isDisabled(index) || !currentParams.symbol_key}
+                                            value={currentParams.symbol_value || ""}
+                                            onChange={(e) =>
+                                                onStockSelection(index, currentParams.symbol_key, e.target.value, "COMMODITY")
+                                            }
+                                            style={{ marginLeft: "10px", width: "150px" }}
+                                        >
+                                            <option value="">Select Symbol</option>
+                                            {currentParams.symbol_key &&
+                                                commodity_map[currentParams.symbol_key].map(symbol => (
+                                                    <option key={symbol} value={symbol}>{symbol}</option>
+                                                ))}
+                                        </select>
+                                    </label>
+                                </div>
+                            )}
+
+                            {/* Broker */}
+                            <label>
+                                Broker:
+                                <select
+                                    disabled={isDisabled(index)}
+                                    value={currentParams.broker || ""}
+                                    onChange={(e) => onParameterChange(e, index, "broker")}
+                                    style={{ marginLeft: "10px", width: "110px" }}
+                                >
+                                    <option value="">Select</option>
+                                    {connectedBrokers.map((b, i) => (
+                                        <option key={i} value={b.name}>{broker_map[b.name]}</option>
+                                    ))}
+                                </select>
+                            </label>
 
                             {/* Strategy */}
-                            <div style={{ marginRight: "10px" }}>
-                                <label>
-                                    Strategy:
-                                    <select
-                                        value={currentParams.strategy || "ADX_MACD_WillR_Supertrend"}
-                                        onChange={(e) => onParameterChange(e, index, "strategy")}
-                                        style={{ marginLeft: "10px", width: "150px" }}
-                                    >
-                                        <option value="ADX_MACD_WillR_Supertrend">
-                                            ADX_MACD_WillR_Supertrend
-                                        </option>
-                                        <option value="Ema10_Ema20_Supertrend">
-                                            Ema10_Ema20_Supertrend
-                                        </option>
-                                        <option value="Ema10_Ema20_MACD_Supertrend">
-                                            Ema10_Ema20_MACD_Supertrend
-                                        </option>
-                                    </select>
-                                </label>
-                            </div>
+                            <label>
+                                Strategy:
+                                <select
+                                    disabled={isDisabled(index)}
+                                    value={currentParams.strategy || "ADX_MACD_WillR_Supertrend"}
+                                    onChange={(e) => onParameterChange(e, index, "strategy")}
+                                    style={{ marginLeft: "10px", width: "150px" }}
+                                >
+                                    <option value="ADX_MACD_WillR_Supertrend">
+                                        ADX_MACD_WillR_Supertrend
+                                    </option>
+                                    <option value="Ema10_Ema20_Supertrend">
+                                        Ema10_Ema20_Supertrend
+                                    </option>
+                                    <option value="Ema10_Ema20_MACD_Supertrend">
+                                        Ema10_Ema20_MACD_Supertrend
+                                    </option>
+                                </select>
+                            </label>
 
                             {/* Interval */}
-                            <div style={{ marginRight: "10px" }}>
-                                <label>
-                                    Interval:
-                                    <select
-                                        value={currentParams.interval || "0"}
-                                        onChange={(e) => onParameterChange(e, index, "interval")}
-                                        style={{ marginLeft: "10px", width: "60px" }}
-                                    >
-                                        <option value="0">0</option>
-                                        <option value="1">1</option>
-                                        <option value="5">5</option>
-                                        <option value="15">15</option>
-                                        <option value="30">30</option>
-                                        <option value="60">60</option>
-                                    </select>
-                                </label>
-                            </div>
+                            <label>
+                                Interval:
+                                <select
+                                    disabled={isDisabled(index)}
+                                    value={currentParams.interval || "1"}
+                                    onChange={(e) => onParameterChange(e, index, "interval")}
+                                    style={{ marginLeft: "10px", width: "60px" }}
+                                >
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="5">5</option>
+                                    <option value="15">15</option>
+                                    <option value="30">30</option>
+                                    <option value="60">60</option>
+                                </select>
+                            </label>
 
                             {/* Lots */}
-                            <div style={{ marginRight: "10px" }}>
-                                <label>
-                                    Lots:
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        value={currentParams.lots || 0}
-                                        onChange={(e) => onParameterChange(e, index, "lots")}
-                                        style={{ marginLeft: "10px", width: "60px" }}
-                                    />
-                                </label>
-                            </div>
+                            <label>
+                                Lots:
+                                <input
+                                    disabled={isDisabled(index)}
+                                    type="number"
+                                    min="0"
+                                    value={currentParams.lots || 0}
+                                    onChange={(e) => onParameterChange(e, index, "lots")}
+                                    style={{ marginLeft: "10px", width: "60px" }}
+                                />
+                            </label>
 
                             {/* Lot Size */}
-                            <div style={{ marginRight: "10px" }}>
-                                <label>
-                                    Lot Size:
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        value={currentParams.lot_size || 0}
-                                        readOnly
-                                        style={{
-                                            marginLeft: "10px",
-                                            width: "60px",
-                                            backgroundColor: "#f0f0f0",
-                                        }}
-                                    />
-                                </label>
-                            </div>
-                            {/* Tick Size */}
-                            <div style={{ marginRight: "10px" }}>
-                                <label>
-                                    Tick Size:
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        value={currentParams.tick_size || 0}
-                                        readOnly
-                                        style={{
-                                            marginLeft: "10px",
-                                            width: "60px",
-                                            backgroundColor: "#f0f0f0",
-                                        }}
-                                    />
-                                </label>
-                            </div>
+                            <label>
+                                Lot Size:
+                                <input
+                                    readOnly
+                                    type="number"
+                                    value={currentParams.lot_size || 0}
+                                    style={{ marginLeft: "10px", width: "60px", background: "#eee" }}
+                                />
+                            </label>
 
-                            {/* Total Shares */}
-                            <div style={{ marginRight: "10px" }}>
-                                <p style={{ margin: 0, whiteSpace: "nowrap" }}>
-                                    Shares: {currentParams.total_shares || 0}
-                                </p>
-                                {currentParams.tick_size !== undefined && (
-                                    <p style={{ margin: 0, whiteSpace: "nowrap" }}>
-                                        Tick Size: {currentParams.tick_size}
-                                    </p>
-                                )}
-                            </div>
+                            {/* Tick Size */}
+                            <label>
+                                Tick Size:
+                                <input
+                                    readOnly
+                                    type="number"
+                                    value={currentParams.tick_size || 0}
+                                    style={{ marginLeft: "10px", width: "60px", background: "#eee" }}
+                                />
+                            </label>
 
                             {/* Target % */}
-                            <div style={{ marginRight: "10px" }}>
-                                <label>
-                                    Target %:
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={currentParams.target_percentage || 0}
-                                        onChange={(e) => onParameterChange(e, index, "target_percentage")}
-                                        style={{ marginLeft: "10px", width: "60px" }}
-                                    />
-                                </label>
-                            </div>
+                            <label>
+                                Target %:
+                                <input
+                                    disabled={isDisabled(index)}
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={currentParams.target_percentage || 0}
+                                    onChange={(e) => onParameterChange(e, index, "target_percentage")}
+                                    style={{ marginLeft: "10px", width: "60px" }}
+                                />
+                            </label>
 
-                            {/* Individual Buttons */}
-                            {isTrading && (
+                            {/* Buttons */}
+                            {isDisabled(index) && (
                                 <>
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         onClick={() => onTradeToggle(index)}
-                                        style={{ 
-                                            marginTop: '0px', 
-                                            backgroundColor: '#dc3545', 
-                                            color: 'white',
-                                            border: 'none',
-                                            padding: '8px 12px',
-                                            cursor: 'pointer'
+                                        style={{
+                                            background: "#dc3545",
+                                            color: "white",
+                                            padding: "8px 12px",
+                                            border: "none",
+                                            cursor: "pointer"
                                         }}
                                     >
                                         Disconnect
                                     </button>
-                                    <button 
-                                        type="button" 
+
+                                    <button
+                                        type="button"
                                         onClick={() => onClosePosition(index)}
-                                        style={{ 
-                                            marginLeft: '10px', 
-                                            backgroundColor: '#007bff', 
-                                            color: 'white',
-                                            border: 'none',
-                                            padding: '8px 12px',
-                                            cursor: 'pointer'
+                                        style={{
+                                            marginLeft: "10px",
+                                            background: "#007bff",
+                                            color: "white",
+                                            padding: "8px 12px",
+                                            border: "none",
+                                            cursor: "pointer"
                                         }}
                                     >
                                         Close
                                     </button>
                                 </>
                             )}
+
                         </div>
                     );
                 })}
 
-                {/* Start All Trades */}
                 <div style={{ marginTop: "20px" }}>
-                    <button 
+                    <button
                         type="button"
                         onClick={onStartAllTrades}
-                        style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 15px', cursor: 'pointer' }}
+                        style={{ background: "#28a745", color: "white", padding: "10px 15px", border: "none" }}
                     >
                         Start All Trades
                     </button>
-                    <button 
+
+                    <button
                         type="button"
                         onClick={onCloseAllPositions}
-                        style={{ marginLeft: '10px', backgroundColor: '#ffc107', color: 'black', border: 'none', padding: '10px 15px', cursor: 'pointer' }}
+                        style={{ marginLeft: "10px", background: "#ffc107", color: "black", padding: "10px 15px", border: "none" }}
                     >
                         Close All Positions
                     </button>
                 </div>
+
             </form>
         </div>
     );

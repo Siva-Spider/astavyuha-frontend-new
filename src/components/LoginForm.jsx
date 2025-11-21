@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiPost } from "../api";
 
 export default function LoginForm({ setUser }) {
@@ -7,7 +8,8 @@ export default function LoginForm({ setUser }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
+  
   // After successful login
   const handleLogin = async (credentials) => {
     const response = await apiPost("/login", credentials); // your login API

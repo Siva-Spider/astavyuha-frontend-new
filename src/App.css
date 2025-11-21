@@ -162,3 +162,18 @@
     padding: 20px;
     min-height: 100vh;
 }
+
+.signal-buy {
+  color: #00c400 !important;  /* green */
+  font-weight: bold;
+}
+
+.signal-sell {
+  color: #ff1a1a !important;  /* red */
+  font-weight: bold;
+}
+
+.signal-none {
+  color: #1a75ff !important;  /* blue */
+  font-weight: bold;
+}

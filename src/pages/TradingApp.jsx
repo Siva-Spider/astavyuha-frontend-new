@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import ConnectBroker from "../components/ConnectBroker";
 import SelectStock from "../components/SelectStock";
 import TradeResults from "../components/TradeResults";
-
+import { useLogWS } from "../LogWSContext";
 import { API_BASE } from "../api";
 import "../TradingApp.css";
 
@@ -12,6 +12,9 @@ function TradingApp({ user, setUser }) {
     // -------------------------------------------------
     const [activeTab, setActiveTab] = useState(() => localStorage.getItem("activeTab") || "connect");
     const [brokerCount, setBrokerCount] = useState(() => parseInt(localStorage.getItem("brokerCount")) || 1);
+    const { startLogs, stopLogs, subscribe } = useLogWS();
+
+    const userId = user?.userid || user?.userId || "guest";
 
     const [selectedBrokers, setSelectedBrokers] = useState(() => {
         const saved = localStorage.getItem("selectedBrokers");
@@ -45,47 +48,16 @@ function TradingApp({ user, setUser }) {
     // -------------------------------------------------
     // 🔥 Persist everything except WebSocket
     // -------------------------------------------------
-    useEffect(() => localStorage.setItem("activeTab", activeTab), [activeTab]);
-    useEffect(() => localStorage.setItem("brokerCount", brokerCount), [brokerCount]);
-    useEffect(() => localStorage.setItem("selectedBrokers", JSON.stringify(selectedBrokers)), [selectedBrokers]);
-    useEffect(() => localStorage.setItem("stockCount", stockCount), [stockCount]);
-    useEffect(() => localStorage.setItem("tradingParameters", JSON.stringify(tradingParameters)), [tradingParameters]);
-    useEffect(() => localStorage.setItem("tradingStatus", JSON.stringify(tradingStatus)), [tradingStatus]);
-    useEffect(() => localStorage.setItem("tradeLogs", JSON.stringify(tradeLogs)), [tradeLogs]);
+    useEffect(() => localStorage.setItem(`${userId}_activeTab`, activeTab), [activeTab]);
+    useEffect(() => localStorage.setItem(`${userId}_brokerCount`, brokerCount), [brokerCount]);
+    useEffect(() => localStorage.setItem(`${userId}_selectedBrokers`, JSON.stringify(selectedBrokers)), [selectedBrokers]);
+    useEffect(() => localStorage.setItem(`${userId}_stockCount`, stockCount), [stockCount]);
+    useEffect(() => localStorage.setItem(`${userId}_tradingParameters`, JSON.stringify(tradingParameters)), [tradingParameters]);
+    useEffect(() => localStorage.setItem(`${userId}_tradingStatus`, JSON.stringify(tradingStatus)), [tradingStatus]);
+    useEffect(() => localStorage.setItem(`${userId}_tradeLogs`, JSON.stringify(tradeLogs)), [tradeLogs]);
 
-    const [selectionType, setSelectionType] = useState(() => localStorage.getItem("selectionType") || "EQUITY");
-    useEffect(() => localStorage.setItem("selectionType", selectionType), [selectionType]);
-
-    // -------------------------------------------------
-    // 🔥 WebSocket Management (No duplicates)
-    // -------------------------------------------------
-    // Single WebSocket lifecycle manager
-    useEffect(() => {
-        if (isTradingActive && !wsRef.current) {
-            console.log("WS: Opening connection...");
-            const ws = new WebSocket(`ws://127.0.0.1:8000/ws/logs`);
-            wsRef.current = ws;
-
-            ws.onopen = () => console.log("WS CONNECTED");
-
-            ws.onmessage = (event) => {
-                try {
-                    const msg = JSON.parse(event.data);
-                    handleNewLog(msg);
-                } catch (err) {
-                    console.error("WS parse error:", err);
-                }
-            };
-
-            ws.onclose = () => console.log("WS CLOSED");
-        }
-
-        if (!isTradingActive && wsRef.current) {
-            console.log("WS: Closing connection because trading stopped");
-            wsRef.current.close();
-            wsRef.current = null;
-        }
-    }, [isTradingActive]);
+    const [selectionType, setSelectionType] = useState(() => localStorage.getItem(`${userId}selectionType`) || "EQUITY");
+    useEffect(() => localStorage.setItem(`${userId}_selectionType`, selectionType), [selectionType]);
 
     useEffect(() => {
         const active = Object.values(tradingStatus).includes("active");
@@ -117,6 +89,18 @@ function TradingApp({ user, setUser }) {
 
     setTradeLogs(prev => [...prev.slice(-999), formatted]);
 };
+
+    // -------------------------------------------------
+    // 🔥 Subscribe to raw WebSocket messages
+    // -------------------------------------------------
+    useEffect(() => {
+        const unsubscribe = subscribe((msg) => {
+            handleNewLog(msg);
+        });
+        return () => unsubscribe();
+    }, []);
+
+
     // -------------------------------------------------
     // 🔥 Logout
     // -------------------------------------------------
@@ -217,8 +201,8 @@ function TradingApp({ user, setUser }) {
     };
 
     const handleStartAllTrades = async () => {
+        console.log("🔥 handleStartAllTrades triggered");
         setActiveTab("results");
-        setIsTradingActive(true);
 
         const params = [];
         for (let i = 0; i < stockCount; i++) {
@@ -231,21 +215,23 @@ function TradingApp({ user, setUser }) {
 
         try {
             setTradeLogs((prev) => [...prev, "🟢 Starting all trades..."]);
-
+            console.log("🔥🔥 TEST A: EXECUTION REACHED HERE — BEFORE FETCH");
             const res = await fetch(`${API_BASE}/start-all-trading`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ tradingParameters: params, selectedBrokers }),
             });
-
+            console.log("🔥 Collected params =", params);
             const data = await res.json();
-
+            
             let newStatus = {};
             params.forEach((_, i) => (newStatus[`stock_${i}`] = "active"));
 
             setTradingStatus((prev) => ({ ...prev, ...newStatus }));
 
             if (data?.logs) setTradeLogs((prev) => [...prev, ...data.logs]);
+            setIsTradingActive(true);
+            startLogs(); 
         } catch (err) {
             setTradeLogs((prev) => [...prev, "❌ Error starting trades"]);
         }
@@ -268,6 +254,7 @@ function TradingApp({ user, setUser }) {
     };
 
     const handleCloseAll = async () => {
+        stopLogs();
         setIsTradingActive(false);
         try {
             const res = await fetch(`${API_BASE}/close-all-positions`, { method: "POST" });

@@ -1,47 +1,32 @@
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useLogWS } from "./LogWSContext";
 
-let ws = null; // shared instance inside the file
+export default function LogStream() {
+  const { messages } = useLogWS();
+  const [visibleLogs, setVisibleLogs] = useState([]);
 
-export default function LogStream({ onMessage, active }) {
-  
   useEffect(() => {
-    if (!active) {
-      if (ws) {
-        console.log("🔴 Closing WS because trading inactive...");
-        ws.close();
-        ws = null;
-      }
-      return;
-    }
+    setVisibleLogs(messages);
+  }, [messages]);
 
-    if (!ws) {
-      console.log("🟢 Opening WS...");
-      ws = new WebSocket("ws://127.0.0.1:8000/ws/logs");
+  const getColorClass = (msg) => {
+  if (typeof msg === "string") {
+    const lower = msg.toLowerCase();
 
-      ws.onopen = () => console.log("📡 WebSocket connected.");
+    if (lower.includes("buy signal generated")) return "signal-buy";
+    if (lower.includes("sell signal generated")) return "signal-sell";
+    if (lower.includes("no trade signal generated")) return "signal-none";
+  }
+  return "";
+};
 
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          onMessage(data);
-        } catch {
-          console.warn("WS data error:", event.data);
-        }
-      };
-
-      ws.onclose = () => {
-        console.log("🔻 WS closed");
-        ws = null;
-      };
-    }
-
-    return () => {
-      if (!active && ws) {
-        ws.close();
-        ws = null;
-      }
-    };
-  }, [active]);
-
-  return null;
+  return (
+    <div className="log-container">
+      {visibleLogs.map((msg, index) => (
+        <div key={index} className={`log-line ${getColorClass(msg)}`}>
+          {msg}
+        </div>
+      ))}
+    </div>
+  );
 }

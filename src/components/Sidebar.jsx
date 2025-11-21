@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 export default function Sidebar({ userRole, setUser }) {
+  const [collapsed, setCollapsed] = React.useState(false);
   const isAdmin = userRole === "admin";
 
   const adminMenu = [
@@ -41,58 +42,95 @@ export default function Sidebar({ userRole, setUser }) {
   return (
     <aside
       style={{
-        width: "240px",
+        position: "relative",
+        width: collapsed ? "60px" : "240px",
         backgroundColor: "#9399ec",
         color: "white",
-        padding: "1.5rem 1rem",
+        padding: collapsed ? "1rem 0.3rem" : "1.5rem 1rem",
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
+        overflow: "hidden",
+        transition: "width 0.3s ease",
       }}
     >
-      <h2 style={{ fontSize: "1.2rem", marginBottom: "1.5rem" }}>
-        {isAdmin ? "ADMIN PANEL" : "CLIENT PANEL"}
-      </h2>
+      {/* Collapse / Expand Button */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        style={{
+          position: "absolute",
+          top: "25px",
+          right: "-10px",
+          width: "26px",
+          height: "36px",                // smaller height
+          borderRadius: "6px",           // rounded corners
+          border: "1px solid #0d581aff",   // dark green border
+          backgroundColor: "#00ff2aff",    // DARK GREEN color
+          color: "white",
+          fontWeight: "bold",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.25)",
+          zIndex: 999,
+          transition: "all 0.2s ease",
+        }}
+      >
+        {collapsed ? ">>" : "<<"}
+      </button>
 
+
+
+      {/* Title */}
+      {!collapsed && (
+        <h2 style={{ fontSize: "1.2rem", marginBottom: "1.5rem" }}>
+          {isAdmin ? "ADMIN PANEL" : "CLIENT PANEL"}
+        </h2>
+      )}
+
+      {/* Menu */}
       <nav>
         <ul style={{ listStyle: "none", padding: 0 }}>
           {menus.map((item) => (
             <li key={item.name} style={{ marginBottom: "0.5rem" }}>
               {item.subItems ? (
-                <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      fontWeight: "bold",
-                      marginBottom: "0.3rem",
-                    }}
-                  >
-                    {item.icon}
-                    <span style={{ marginLeft: "0.5rem" }}>{item.name}</span>
+                !collapsed && (
+                  <div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        fontWeight: "bold",
+                        marginBottom: "0.3rem",
+                      }}
+                    >
+                      {item.icon}
+                      <span style={{ marginLeft: "0.5rem" }}>{item.name}</span>
+                    </div>
+                    <ul style={{ listStyle: "none", paddingLeft: "1.5rem" }}>
+                      {item.subItems.map((sub) => (
+                        <li key={sub.name}>
+                          <NavLink
+                            to={sub.path}
+                            className={({ isActive }) =>
+                              isActive ? "active-sidebar-link" : "sidebar-link"
+                            }
+                            style={{
+                              display: "block",
+                              padding: "0.4rem 0",
+                              color: "white",
+                              textDecoration: "none",
+                              borderRadius: "6px",
+                            }}
+                          >
+                            {sub.name}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul style={{ listStyle: "none", paddingLeft: "1.5rem" }}>
-                    {item.subItems.map((sub) => (
-                      <li key={sub.name}>
-                        <NavLink
-                          to={sub.path}
-                          className={({ isActive }) =>
-                            isActive ? "active-sidebar-link" : "sidebar-link"
-                          }
-                          style={{
-                            display: "block",
-                            padding: "0.4rem 0",
-                            color: "white",
-                            textDecoration: "none",
-                            borderRadius: "6px",
-                          }}
-                        >
-                          {sub.name}
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                )
               ) : (
                 <NavLink
                   to={item.path}
@@ -109,7 +147,14 @@ export default function Sidebar({ userRole, setUser }) {
                   }}
                 >
                   {item.icon}
-                  <span style={{ marginLeft: "0.6rem" }}>{item.name}</span>
+                  <span
+                    style={{
+                      marginLeft: "0.6rem",
+                      display: collapsed ? "none" : "inline",
+                    }}
+                  >
+                    {item.name}
+                  </span>
                 </NavLink>
               )}
             </li>
@@ -117,24 +162,31 @@ export default function Sidebar({ userRole, setUser }) {
         </ul>
       </nav>
 
-      <button
-        onClick={() => {setUser(null);localStorage.removeItem("user");}}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          backgroundColor: "#dc3545",
-          color: "white",
-          border: "none",
-          borderRadius: "6px",
-          padding: "0.8rem",
-          cursor: "pointer",
-          justifyContent: "center",
-          marginTop: "1rem",
-        }}
-      >
-        <LogOut size={18} style={{ marginRight: "0.5rem" }} />
-        Logout
-      </button>
+      {/* Logout */}
+      {!collapsed && (
+        <button
+          onClick={() => {
+            setUser(null);
+            localStorage.removeItem("user");
+          }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            backgroundColor: "#dc3545",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            padding: "0.8rem",
+            cursor: "pointer",
+            justifyContent: "center",
+            marginTop: "1rem",
+          }}
+        >
+          <LogOut size={18} style={{ marginRight: "0.5rem" }} />
+          Logout
+        </button>
+      )}
     </aside>
+
   );
 }
